@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; margin: 0; padding: 10px; background: transparent; }
+        .translator-container { max-width: 100%; display: flex; flex-direction: column; gap: 15px; }
+        .controls { display: flex; gap: 10px; align-items: center; justify-content: center; margin-bottom: 5px; }
+        .translator-box { display: flex; gap: 15px; width: 100%; }
+        textarea { width: 50%; height: 160px; padding: 12px; border: 1px solid #dadce0; border-radius: 8px; resize: none; font-size: 15px; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
+        textarea:focus { border-color: #1a73e8; }
+        textarea[readonly] { background-color: #f8f9fa; color: #3c4043; cursor: default; }
+        select { padding: 8px 12px; border: 1px solid #dadce0; border-radius: 6px; font-size: 14px; background: white; cursor: pointer; outline: none; }
+        button { padding: 10px 24px; background: #1a73e8; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #1557b0; }
+        @media (max-width: 600px) { .translator-box { flex-direction: column; } textarea { width: 100%; height: 120px; } }
+    </style>
+</head>
+<body>
+
+<div class="translator-container">
+    <div class="controls">
+        <select id="langFrom">
+            <option value="ru" selected>Русский</option>
+            <option value="en">Английский</option>
+            <option value="es">Испанский</option>
+            <option value="de">Немецкий</option>
+        </select>
+        <button id="translateBtn">Перевести</button>
+        <select id="langTo">
+            <option value="en" selected>Английский</option>
+            <option value="ru">Русский</option>
+            <option value="es">Испанский</option>
+            <option value="de">Немецкий</option>
+        </select>
+    </div>
+
+    <div class="translator-box">
+        <textarea id="inputText" placeholder="Введите текст..."></textarea>
+        <textarea id="outputText" placeholder="Перевод" readonly></textarea>
+    </div>
+</div>
+
+<script>
+    document.getElementById('translateBtn').addEventListener('click', async () => {
+        const text = document.getElementById('inputText').value.trim();
+        const fromLang = document.getElementById('langFrom').value;
+        const toLang = document.getElementById('langTo').value;
+        const outputField = document.getElementById('outputText');
+
+        if (!text) {
+            outputField.value = "Пожалуйста, введите текст.";
+            return;
+        }
+
+        outputField.value = "Секунду, переводим...";
+
+        const url = `https://translated.net{encodeURIComponent(text)}&langpair=${fromLang}|${toLang}`;
+
+        try {
+            const response = await fetch(url);
+            if (response.ok) {
+                const json = await response.json();
+                if (json.responseData && json.responseData.translatedText) {
+                    outputField.value = json.responseData.translatedText;
+                } else {
+                    outputField.value = "Ошибка: Сервер вернул пустой ответ.";
+                }
+            } else {
+                outputField.value = "Ошибка сервера: " + response.status;
+            }
+        } catch (err) {
+            outputField.value = "Ошибка сети. Попробуйте еще раз.";
+        }
+    });
+</script>
+
+</body>
+</html>
